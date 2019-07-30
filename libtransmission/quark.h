@@ -46,6 +46,7 @@ enum
     TR_KEY_announce, /* metainfo */
     TR_KEY_announce_list, /* metainfo */
     TR_KEY_announceState, /* rpc */
+    TR_KEY_any,
     TR_KEY_arguments, /* rpc */
     TR_KEY_bandwidth_priority,
     TR_KEY_bandwidthPriority,
@@ -111,6 +112,7 @@ enum
     TR_KEY_errorString,
     TR_KEY_eta,
     TR_KEY_etaIdle,
+    TR_KEY_every,
     TR_KEY_failure_reason,
     TR_KEY_fields,
     TR_KEY_fileStats,

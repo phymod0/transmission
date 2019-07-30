@@ -103,6 +103,7 @@ static tr_torrent** getTorrents(tr_session* session, tr_variant* args, int* setm
     int64_t id;
     tr_torrent** torrents = NULL;
     tr_variant* ids;
+    tr_variant* labels;
     char const* str;
 
     if (tr_variantDictFindList(args, TR_KEY_ids, &ids))
@@ -174,6 +175,14 @@ static tr_torrent** getTorrents(tr_session* session, tr_variant* args, int* setm
                 torrents[torrentCount++] = tor;
             }
         }
+    }
+    else if (tr_variantDictFindDict(args, TR_KEY_labels, &labels))
+    {
+        tr_variant* anyLabels;
+        tr_variant* everyLabels;
+        tr_variantDictFindList(labels, TR_KEY_any, &anyLabels);
+        tr_variantDictFindList(labels, TR_KEY_every, &everyLabels);
+        torrents = tr_sessionGetTorrentsWithLabels(session, &torrentCount, anyLabels, everyLabels);
     }
     else /* all of them */
     {
@@ -899,6 +908,7 @@ static char const* torrentGet(tr_session* session, tr_variant* args_in, tr_varia
     tr_torrent** torrents = getTorrents(session, args_in, &torrentCount);
     tr_variant* list = tr_variantDictAddList(args_out, TR_KEY_torrents, torrentCount);
     tr_variant* fields;
+    tr_variant* labels;
     char const* strVal;
     char const* errmsg = NULL;
 
@@ -928,7 +938,10 @@ static char const* torrentGet(tr_session* session, tr_variant* args_in, tr_varia
 
     if (!tr_variantDictFindList(args_in, TR_KEY_fields, &fields))
     {
-        errmsg = "no fields specified";
+        if (!tr_variantDictFindDict(args_in, TR_KEY_labels, &labels))
+        {
+            errmsg = "no fields specified";
+        }
     }
     else
     {
@@ -975,6 +988,7 @@ static char const* getLabelArray(tr_variant const* list, tr_ptrArray* labels)
             if (errmsg == NULL)
             {
                 bool dup = false;
+#if 0
                 for (int j = 0; j < labelcount; j++)
                 {
                     if (tr_strcmp0(label, (char*)tr_ptrArrayNth(labels, j)) == 0)
@@ -983,6 +997,9 @@ static char const* getLabelArray(tr_variant const* list, tr_ptrArray* labels)
                         break;
                     }
                 }
+#else
+                tr_ptrArrayLowerBound(labels, label, (PtrArrayCompareFunc)tr_strcmp0, &dup);
+#endif
 
                 if (dup)
                 {
@@ -990,8 +1007,16 @@ static char const* getLabelArray(tr_variant const* list, tr_ptrArray* labels)
                 }
             }
 
+#if 0
             tr_ptrArrayAppend(labels, label);
             labelcount++;
+#else
+            if (errmsg == NULL)
+            {
+                tr_ptrArrayInsertSorted(labels, label, (PtrArrayCompareFunc)tr_strcmp0);
+                labelcount++;
+            }
+#endif
 
             if (errmsg != NULL)
             {
@@ -999,6 +1024,8 @@ static char const* getLabelArray(tr_variant const* list, tr_ptrArray* labels)
             }
         }
     }
+
+
 
     return errmsg;
 }

@@ -41,7 +41,9 @@
  * http://en.wikipedia.org/wiki/Cross-site_request_forgery
  * http://shiflett.org/articles/cross-site-request-forgeries
  * http://www.webappsec.org/lists/websecurity/archive/2008-04/msg00037.html */
-#define REQUIRE_SESSION_ID
+// #define REQUIRE_SESSION_ID
+
+#define ALLOW_CORS
 
 #define MY_NAME "RPC Server"
 #define MY_REALM "Transmission"
@@ -633,6 +635,10 @@ static void handle_request(struct evhttp_request* req, void* arg)
         char* pass = NULL;
 
         evhttp_add_header(req->output_headers, "Server", MY_REALM);
+
+#ifdef ALLOW_CORS
+        evhttp_add_header(req->output_headers, "Access-Control-Allow-Origin", "*");
+#endif /* ALLOW_CORS */
 
         if (server->loginattempts == 100)
         {

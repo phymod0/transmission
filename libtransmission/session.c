@@ -1894,6 +1894,93 @@ tr_torrent** tr_sessionGetTorrents(tr_session* session, int* setme_n)
     return torrents;
 }
 
+static inline bool hasLabel(tr_torrent const* torrent, tr_variant const* label)
+{
+    char const* labelStr;
+    TR_ASSERT(label != NULL && tr_variantGetStr(label, &labelStr, NULL));
+    return tr_ptrArrayFindSorted(&torrent->labels, labelStr, (PtrArrayCompareFunc)tr_strcmp0) != NULL;
+}
+
+static inline bool hasAnyLabel(tr_torrent const* torrent, tr_variant const* labels)
+{
+    TR_ASSERT(labels == NULL || tr_variantIsList(labels));
+
+    if (labels == NULL)
+    {
+        return true;
+    }
+
+    size_t const n = tr_variantListSize(labels);
+    for (size_t i = 0; i < n; ++i)
+    {
+        tr_variant const* label = tr_variantListChild(labels, i);
+        if (hasLabel(torrent, label))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+static inline bool hasEveryLabel(tr_torrent const* torrent, tr_variant const* labels)
+{
+    TR_ASSERT(labels == NULL || tr_variantIsList(labels));
+
+    if (labels == NULL)
+    {
+        return true;
+    }
+
+    size_t const n = tr_variantListSize(labels);
+    for (size_t i = 0; i < n; ++i)
+    {
+        tr_variant const* label = tr_variantListChild(labels, i);
+        if (!hasLabel(torrent, label))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+int tr_sessionCountTorrentsWithLabels(tr_session const* session, tr_variant const* anyLabels,
+    tr_variant const* everyLabels)
+{
+    TR_ASSERT(tr_isSession(session));
+
+    int count = 0;
+    tr_torrent* tor = NULL;
+    while ((tor = tr_torrentNext(session, tor)) != NULL)
+    {
+        count += hasAnyLabel(tor, anyLabels) && hasEveryLabel(tor, everyLabels);
+    }
+    return count;
+}
+
+tr_torrent** tr_sessionGetTorrentsWithLabels(tr_session* session, int* setme_n,
+    tr_variant const* anyLabels, tr_variant const* everyLabels)
+{
+    TR_ASSERT(tr_isSession(session));
+    TR_ASSERT(setme_n != NULL);
+
+    int count = 0;
+    int const n = tr_sessionCountTorrentsWithLabels(session, anyLabels, everyLabels);
+    *setme_n = n;
+
+    tr_torrent** torrents = tr_new(tr_torrent*, n);
+    tr_torrent* tor = NULL;
+
+    while ((tor = tr_torrentNext(session, tor)) != NULL)
+    {
+        if (hasAnyLabel(tor, anyLabels) && hasEveryLabel(tor, everyLabels))
+        {
+            torrents[count++] = tor;
+        }
+    }
+
+    return torrents;
+}
+
 static int compareTorrentByCur(void const* va, void const* vb)
 {
     tr_torrent const* a = *(tr_torrent const**)va;

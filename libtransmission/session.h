@@ -253,6 +253,12 @@ int tr_sessionCountTorrents(tr_session const* session);
 
 tr_torrent** tr_sessionGetTorrents(tr_session* session, int* setme_n);
 
+int tr_sessionCountTorrentsWithLabels(tr_session const* session, tr_variant const* anyLabels,
+    tr_variant const* everyLabels);
+
+tr_torrent** tr_sessionGetTorrentsWithLabels(tr_session* session, int* setme_n,
+    tr_variant const* anyLabels, tr_variant const* everyLabels);
+
 enum
 {
     SESSION_MAGIC_NUMBER = 3845,

@@ -46,6 +46,7 @@ static struct tr_key_struct const my_static[] =
     Q("announce"),
     Q("announce-list"),
     Q("announceState"),
+    Q("any"),
     Q("arguments"),
     Q("bandwidth-priority"),
     Q("bandwidthPriority"),
@@ -111,6 +112,7 @@ static struct tr_key_struct const my_static[] =
     Q("errorString"),
     Q("eta"),
     Q("etaIdle"),
+    Q("every"),
     Q("failure reason"),
     Q("fields"),
     Q("fileStats"),
@@ -404,7 +406,7 @@ static struct tr_key_struct const my_static[] =
     Q("watch-dir"),
     Q("watch-dir-enabled"),
     Q("webseeds"),
-    Q("webseedsSendingToUs")
+    Q("webseedsSendingToUs"),
 };
 
 #undef Q
